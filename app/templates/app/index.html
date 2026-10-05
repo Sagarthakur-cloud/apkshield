@@ -1,0 +1,299 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}New Scan — APKShield{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen">
+  {% include "app/_sidebar.html" with active="dashboard" %}
+
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden"></div>
+
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+    {% include "app/_topbar.html" with title="New Scan" subtitle="Analyze Android APKs for malware" %}
+
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 max-w-[1500px] mx-auto">
+
+        <!-- CARD 1 — UPLOAD -->
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] flex flex-col min-h-[420px]">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-bold text-[15px]">Upload APK</h3>
+              <p class="text-[11px] text-[#71717a]">Drag & drop or browse files</p>
+            </div>
+            <span class="text-[10px] uppercase tracking-wider text-[#22c55e] bg-[#22c55e]/10 px-2 py-1 rounded-md border border-[#22c55e]/20 font-medium">.apk only</span>
+          </div>
+
+          <div id="dropZone" class="flex-1 border-2 border-dashed border-[#1f1f23] rounded-lg p-6 flex items-center justify-center cursor-pointer transition hover:border-[#22c55e]/40 hover:bg-[#22c55e]/[0.02]">
+            <div id="dropDefault" class="text-center">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#22c55e]/10 border border-[#22c55e]/15 flex items-center justify-center relative">
+                <i class="fa-brands fa-android text-[#22c55e] text-3xl"></i>
+                <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#22c55e] flex items-center justify-center border-2 border-[#0d0d0f]">
+                  <i class="fa-solid fa-arrow-up text-black text-[10px]"></i>
+                </span>
+              </div>
+              <p class="font-semibold text-[15px] mb-1">Drop APK here</p>
+              <p class="text-[#71717a] text-xs mb-4">or click to browse your files</p>
+              <div class="inline-flex items-center gap-2 text-[11px] text-[#71717a] font-mono bg-black/40 border border-[#1f1f23] rounded-lg px-3 py-1.5">
+                <i class="fa-solid fa-info-circle text-[10px]"></i> Max size 100 MB
+              </div>
+            </div>
+
+            <div id="filePreview" class="hidden text-center w-full">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#22c55e]/10 border border-[#22c55e]/15 flex items-center justify-center">
+                <i class="fa-brands fa-android text-[#22c55e] text-3xl"></i>
+              </div>
+              <p id="fileName" class="font-semibold text-[15px] truncate max-w-xs mx-auto"></p>
+              <p id="fileSize" class="text-[#71717a] text-xs mt-1 font-mono"></p>
+              <button id="removeFile" class="mt-3 text-xs text-[#ef4444] hover:underline inline-flex items-center gap-1">
+                <i class="fa-solid fa-xmark text-[10px]"></i> Remove file
+              </button>
+            </div>
+
+            <input type="file" id="fileInput" accept=".apk" class="hidden" />
+          </div>
+
+          <div id="selectedLine" class="hidden mt-4 flex items-center gap-2 text-xs text-[#a1a1aa] bg-black/40 border border-[#1f1f23] rounded-lg px-3 py-2">
+            <i class="fa-brands fa-android text-[#22c55e] text-sm"></i>
+            <span id="selectedName" class="font-mono truncate flex-1"></span>
+            <button id="clearSelected" class="text-[#71717a] hover:text-[#ef4444] transition"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <button id="scanBtn" disabled
+            class="mt-4 w-full bg-[#1f1f23] text-[#52525b] cursor-not-allowed font-semibold py-3.5 rounded-lg transition flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-radar text-xs"></i><span>Start Scan</span>
+          </button>
+        </section>
+
+        <!-- CARD 2 — RISK SCORE -->
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] flex flex-col min-h-[420px]">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-[15px]">Risk Score</h3>
+              <p class="text-[11px] text-[#71717a]">Overall threat assessment</p>
+            </div>
+            <span id="classBadge" class="text-[10px] uppercase tracking-wider text-[#71717a] bg-[#1f1f23] px-2.5 py-1 rounded-full font-medium border border-[#27272a]">Awaiting scan</span>
+          </div>
+
+          <div class="flex-1 flex items-center justify-center py-2">
+            <div class="relative w-48 h-48">
+              <svg class="transform -rotate-90 w-48 h-48" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="85" stroke="#17171a" stroke-width="10" fill="none" />
+                <circle id="dashedRing" class="dashed-ring pulse-ring" cx="100" cy="100" r="85" stroke="#22c55e" stroke-width="4" fill="none" opacity="0.5" />
+                <circle id="gaugeCircle" cx="100" cy="100" r="85" stroke="#22c55e" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="534" stroke-dashoffset="534" class="transition-all duration-1000 ease-out opacity-0" />
+              </svg>
+
+              <div id="gaugeEmpty" class="absolute inset-0 flex flex-col items-center justify-center px-6 text-center gap-2">
+                <p class="text-[11px] text-[#71717a] leading-tight max-w-[140px]">Upload APK to analyze</p>
+                <button id="loadDemoRiskBtn" class="text-[11px] text-[#22c55e] hover:text-[#16a34a] hover:underline transition">
+                  Load Demo APK: FakeBank.apk
+                </button>
+              </div>
+
+              <div id="gaugeFilled" class="hidden absolute inset-0 flex-col items-center justify-center">
+                <span id="riskScore" class="text-5xl font-extrabold leading-none">0</span>
+                <span class="text-[10px] text-[#71717a] mt-1.5 uppercase tracking-wider">out of 100</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mt-3 pt-4 border-t border-[#1f1f23]">
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-1.5 mb-1">
+                <span class="w-2 h-2 rounded-full bg-[#22c55e]"></span>
+                <span class="text-[11px] font-semibold text-[#22c55e]">Safe</span>
+              </div>
+              <p class="text-[10px] text-[#52525b]">0 – 39</p>
+            </div>
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-1.5 mb-1">
+                <span class="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+                <span class="text-[11px] font-semibold text-[#f59e0b]">Suspicious</span>
+              </div>
+              <p class="text-[10px] text-[#52525b]">40 – 69</p>
+            </div>
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-1.5 mb-1">
+                <span class="w-2 h-2 rounded-full bg-[#ef4444]"></span>
+                <span class="text-[11px] font-semibold text-[#ef4444]">Malicious</span>
+              </div>
+              <p class="text-[10px] text-[#52525b]">70 – 100</p>
+            </div>
+          </div>
+
+          <div id="breakdown" class="hidden mt-4 pt-4 border-t border-[#1f1f23] space-y-2.5">
+            <p class="text-[10px] uppercase tracking-wider text-[#52525b] font-medium mb-1">Detection breakdown</p>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-[#a1a1aa]"><i class="fa-solid fa-fingerprint mr-1.5 text-[10px] text-[#71717a]"></i>Signature Match</span>
+                <span id="bdSigVal" class="font-mono text-[#a1a1aa]">0%</span>
+              </div>
+              <div class="w-full bg-[#17171a] rounded-full h-1.5 overflow-hidden">
+                <div id="bdSigBar" class="bg-[#22c55e] h-1.5 rounded-full transition-all duration-1000" style="width:0%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-[#a1a1aa]"><i class="fa-solid fa-code mr-1.5 text-[10px] text-[#71717a]"></i>Heuristic</span>
+                <span id="bdHeuVal" class="font-mono text-[#a1a1aa]">0%</span>
+              </div>
+              <div class="w-full bg-[#17171a] rounded-full h-1.5 overflow-hidden">
+                <div id="bdHeuBar" class="bg-[#f59e0b] h-1.5 rounded-full transition-all duration-1000" style="width:0%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-[#a1a1aa]"><i class="fa-solid fa-brain mr-1.5 text-[10px] text-[#71717a]"></i>Behavior</span>
+                <span id="bdBehVal" class="font-mono text-[#a1a1aa]">0%</span>
+              </div>
+              <div class="w-full bg-[#17171a] rounded-full h-1.5 overflow-hidden">
+                <div id="bdBehBar" class="bg-[#ef4444] h-1.5 rounded-full transition-all duration-1000" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 3 — PERMISSIONS -->
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] flex flex-col min-h-[420px]">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-bold text-[15px]">Detected Permissions</h3>
+              <p class="text-[11px] text-[#71717a]">Risks extracted from AndroidManifest</p>
+            </div>
+            <span id="permCount" class="text-[11px] text-[#71717a] font-mono bg-[#1f1f23] px-2 py-1 rounded-md border border-[#27272a]">0 items</span>
+          </div>
+
+          <div class="flex-1 overflow-hidden rounded-lg border border-[#1f1f23] relative">
+            <div id="permTableWrap" class="hidden h-full overflow-y-auto max-h-[340px]">
+              <table class="w-full text-sm">
+                <thead class="bg-black/60 sticky top-0 backdrop-blur z-10">
+                  <tr class="text-left">
+                    <th class="px-4 py-2.5 font-semibold text-[10px] uppercase tracking-widest text-[#52525b]">Permission</th>
+                    <th class="px-4 py-2.5 font-semibold text-[10px] uppercase tracking-widest text-[#52525b] w-32">Risk</th>
+                    <th class="px-4 py-2.5 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody id="permTableBody" class="divide-y divide-[#1a1a1a]"></tbody>
+              </table>
+            </div>
+
+            <div id="permSkeleton" class="hidden p-4 space-y-3">
+              <div class="skeleton-line h-3 w-3/4"></div>
+              <div class="skeleton-line h-3 w-1/2"></div>
+              <div class="skeleton-line h-3 w-2/3"></div>
+              <div class="skeleton-line h-3 w-1/3"></div>
+              <div class="skeleton-line h-3 w-1/2"></div>
+            </div>
+
+            <div id="permEmpty" class="h-full flex flex-col justify-center px-6 py-8">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[#17171a] border border-[#1f1f23] flex items-center justify-center shrink-0 mt-0.5">
+                  <i class="fa-solid fa-shield-halved text-[#52525b] text-sm"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-[14px] text-[#a1a1aa] leading-tight mb-1.5">No permissions analyzed yet</p>
+                  <button id="loadDemoPermBtn" class="text-[12px] text-[#22c55e] hover:text-[#16a34a] hover:underline transition text-left">
+                    Load Demo APK: FakeBank.apk
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CARD 4 — FILE DETAILS -->
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] flex flex-col min-h-[420px]">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="font-bold text-[15px]">File Details</h3>
+              <p class="text-[11px] text-[#71717a]">APK metadata & signature</p>
+            </div>
+            <span id="lastScanned" class="text-[10px] font-mono text-[#52525b] tracking-tight">Last scanned: Never</span>
+          </div>
+
+          <div id="fileDetailsWrap" class="space-y-2.5 flex-1">
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-black/40 border border-[#1f1f23] hover:border-[#2a2a2f] transition group">
+              <div class="w-8 h-8 rounded-md bg-[#17171a] border border-[#1f1f23] flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-cube text-[#22c55e] text-[11px]"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1">Package Name</p>
+                <div class="flex items-center gap-2">
+                  <p id="metaPackage" class="text-[12px] font-mono text-[#71717a] italic truncate flex-1">Not scanned yet</p>
+                  <button id="copyPackageBtn" class="opacity-0 group-hover:opacity-100 text-[#52525b] hover:text-[#22c55e] transition shrink-0 w-6 h-6 rounded-md hover:bg-[#22c55e]/10 flex items-center justify-center" title="Copy package name">
+                    <i class="fa-solid fa-copy text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-black/40 border border-[#1f1f23] hover:border-[#2a2a2f] transition">
+              <div class="w-8 h-8 rounded-md bg-[#17171a] border border-[#1f1f23] flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-database text-[#22c55e] text-[11px]"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1">File Size</p>
+                <p id="metaSize" class="text-[12px] font-mono text-[#71717a] italic">Not scanned yet</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-black/40 border border-[#1f1f23] hover:border-[#2a2a2f] transition">
+              <div class="w-8 h-8 rounded-md bg-[#17171a] border border-[#1f1f23] flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-stamp text-[#22c55e] text-[11px]"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1">Certificate</p>
+                <div id="certBadgeWrap">
+                  <span id="metaCert" class="text-[12px] font-mono text-[#71717a] italic">Not scanned yet</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-black/40 border border-[#1f1f23] hover:border-[#2a2a2f] transition">
+              <div class="w-8 h-8 rounded-md bg-[#17171a] border border-[#1f1f23] flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-hashtag text-[#22c55e] text-[11px]"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between mb-1">
+                  <p class="text-[10px] uppercase tracking-widest text-[#52525b]">SHA-256</p>
+                  <button id="copyShaBtn" class="text-[#52525b] hover:text-[#22c55e] transition shrink-0 w-6 h-6 rounded-md hover:bg-[#22c55e]/10 flex items-center justify-center" title="Click to copy">
+                    <i class="fa-solid fa-copy text-[10px]"></i>
+                  </button>
+                </div>
+                <p id="metaSha" class="text-[11px] font-mono text-[#71717a] italic">Not scanned yet</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-black/40 border border-[#1f1f23] hover:border-[#2a2a2f] transition">
+              <div class="w-8 h-8 rounded-md bg-[#17171a] border border-[#1f1f23] flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-biohazard text-[#22c55e] text-[11px]"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1">Malware Family</p>
+                <p id="metaFamily" class="text-[12px] font-mono text-[#71717a] italic">Not scanned yet</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="fileActions" class="hidden mt-4 pt-4 border-t border-[#1f1f23] grid grid-cols-2 gap-2.5">
+            <button id="quarantineBtn" class="bg-[#ef4444] hover:bg-[#dc2626] text-white font-semibold text-[13px] py-2.5 rounded-lg transition flex items-center justify-center gap-2 active:scale-[0.99]">
+              <i class="fa-solid fa-lock text-[11px]"></i> Quarantine APK
+            </button>
+            <button id="viewReportBtn" class="bg-transparent hover:bg-[#22c55e]/[0.08] text-[#22c55e] font-semibold text-[13px] py-2.5 rounded-lg transition flex items-center justify-center gap-2 border border-[#22c55e]/30 hover:border-[#22c55e]/60 active:scale-[0.99]">
+              <i class="fa-solid fa-file-shield text-[11px]"></i> View Full Report
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="fixed bottom-6 right-6 px-5 py-3 rounded-lg shadow-lg text-sm font-semibold opacity-0 pointer-events-none transition-opacity duration-300 z-[60]"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/layout.js' %}"></script>
+<script src="{% static 'js/mock-data.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

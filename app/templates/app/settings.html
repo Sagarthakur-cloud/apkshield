@@ -1,0 +1,193 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}Settings — APKShield{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen">
+  {% include "app/_sidebar.html" with active="settings" %}
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden"></div>
+
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+    {% include "app/_topbar.html" with title="Settings" subtitle="Configure scan preferences & engine" %}
+
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6" style="padding-bottom: 120px;">
+      <div class="max-w-[1500px] mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+          <div class="lg:col-span-3 space-y-5">
+            <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-9 h-9 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center">
+                  <i class="fa-solid fa-user text-[#22c55e] text-sm"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-[15px]">Account</h3>
+                  <p class="text-[11px] text-[#71717a]">Your display name and email</p>
+                </div>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <label class="text-[10px] uppercase tracking-widest text-[#52525b] block mb-1.5">Display Name</label>
+                  <div class="relative">
+                    <i class="fa-solid fa-user-pen absolute left-3 top-1/2 -translate-y-1/2 text-[#52525b] text-xs"></i>
+                    <input type="text" value="{{ request.user.username }}"
+                      class="input-premium w-full bg-black/40 border border-[#1f1f1f] rounded-lg pl-9 pr-10 py-2.5 text-sm transition" />
+                    <button class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md text-[#52525b] hover:text-[#22c55e] hover:bg-[#22c55e]/10 transition flex items-center justify-center">
+                      <i class="fa-solid fa-pen text-[11px]"></i>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[10px] uppercase tracking-widest text-[#52525b] block mb-1.5">Email</label>
+                  <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-[#52525b] text-xs"></i>
+                    <input type="email" value="{{ request.user.email }}"
+                      class="input-premium w-full bg-black/40 border border-[#1f1f1f] rounded-lg pl-9 pr-10 py-2.5 text-sm transition" />
+                    <button class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-md text-[#52525b] hover:text-[#22c55e] hover:bg-[#22c55e]/10 transition flex items-center justify-center">
+                      <i class="fa-solid fa-pen text-[11px]"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div class="flex items-center gap-3 mb-5">
+                <div class="w-9 h-9 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center">
+                  <i class="fa-solid fa-sliders text-[#22c55e] text-sm"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-[15px]">Scan Preferences</h3>
+                  <p class="text-[11px] text-[#71717a]">Control how scans run</p>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <div class="flex items-center justify-between py-3.5 border-b border-[#1f1f1f]">
+                  <div class="min-w-0 pr-3">
+                    <p class="text-[13px] font-semibold">Deep Behavioral Analysis</p>
+                    <p class="text-[11px] text-[#71717a]">Enables Quark-Engine (slower, more accurate)</p>
+                  </div>
+                  <div class="toggle-switch on" data-toggle></div>
+                </div>
+                <div class="flex items-center justify-between py-3.5 border-b border-[#1f1f1f]">
+                  <div class="min-w-0 pr-3">
+                    <p class="text-[13px] font-semibold">Auto-Delete Scanned APKs</p>
+                    <p class="text-[11px] text-[#71717a]">Removes uploaded files after analysis</p>
+                  </div>
+                  <div class="toggle-switch on" data-toggle></div>
+                </div>
+                <div class="flex items-center justify-between py-3.5 border-b border-[#1f1f1f]">
+                  <div class="min-w-0 pr-3">
+                    <p class="text-[13px] font-semibold">Email Notifications</p>
+                    <p class="text-[11px] text-[#71717a]">Get alerts when high-risk APKs are detected</p>
+                  </div>
+                  <div class="toggle-switch" data-toggle></div>
+                </div>
+                <div class="flex items-center justify-between py-3.5">
+                  <div class="min-w-0 pr-3">
+                    <p class="text-[13px] font-semibold">Enable Family Attribution</p>
+                    <p class="text-[11px] text-[#71717a]">Show Cerberus, Anubis, etc. family names</p>
+                  </div>
+                  <div class="toggle-switch on" data-toggle></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="lg:col-span-2 space-y-5">
+            <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <div class="flex items-center justify-between mb-5">
+                <h3 class="font-bold text-[15px] flex items-center gap-2">
+                  <i class="fa-solid fa-microchip text-[#22c55e] text-xs"></i> Engine Status
+                </h3>
+                <span class="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-[#22c55e] bg-[#22c55e]/10 border border-[#22c55e]/30 rounded-full px-2.5 py-1 font-semibold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#22c55e] dot-pulse"></span> Online
+                </span>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between py-2 border-b border-[#1f1f1f]">
+                  <span class="text-[11px] text-[#71717a]">Version</span>
+                  <span class="text-[12px] font-mono text-[#d4d4d8]">v2.3.1</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-[#1f1f1f]">
+                  <span class="text-[11px] text-[#71717a]">Model</span>
+                  <span class="text-[11px] font-mono text-[#d4d4d8] text-right">XGBoost + Androguard <span class="text-[#22c55e]">98.2%</span></span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-[#1f1f1f]">
+                  <span class="text-[11px] text-[#71717a]">Scans Today</span>
+                  <span class="text-[12px] font-mono text-[#d4d4d8]">{{ scans_today|default:0 }}</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                  <span class="text-[11px] text-[#71717a]">Last Update</span>
+                  <span class="text-[12px] font-mono text-[#d4d4d8]">Today</span>
+                </div>
+              </div>
+              <button class="w-full mt-4 bg-transparent hover:bg-[#22c55e]/[0.08] text-[#22c55e] font-semibold text-[12px] py-2 rounded-lg transition flex items-center justify-center gap-2 border border-[#22c55e]/30 hover:border-[#22c55e]/60">
+                <i class="fa-solid fa-rotate text-[10px]"></i> Check for Updates
+              </button>
+            </section>
+
+            <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+              <h3 class="font-bold text-[15px] mb-5 flex items-center gap-2">
+                <i class="fa-solid fa-gauge-high text-[#f59e0b] text-xs"></i> Risk Settings
+              </h3>
+              <div class="mb-5">
+                <div class="flex items-center justify-between mb-3">
+                  <label class="text-[11px] uppercase tracking-widest text-[#71717a]">Risk Threshold</label>
+                  <span id="riskThresholdVal" class="text-[13px] font-mono font-bold text-[#22c55e]">70</span>
+                </div>
+                <input id="riskThreshold" type="range" min="0" max="100" value="70" class="risk-slider w-full" />
+              </div>
+              <div class="flex items-center justify-between py-3 border-t border-[#1f1f1f]">
+                <div class="min-w-0 pr-3">
+                  <p class="text-[13px] font-semibold">Auto-Quarantine Malicious APKs</p>
+                  <p class="text-[11px] text-[#71717a]">Block install automatically</p>
+                </div>
+                <div class="toggle-switch on" data-toggle></div>
+              </div>
+            </section>
+
+            <section class="bg-[#18181b] border border-[#7f1d1d] rounded-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]" style="padding: 20px;">
+              <h3 class="font-bold text-[15px] mb-1.5 flex items-center gap-2 text-white">
+                <i class="fa-solid fa-triangle-exclamation text-[#ef4444] text-sm"></i> Danger Zone
+              </h3>
+              <p class="text-[12px] text-[#71717a] mb-5">Irreversible actions - proceed with caution</p>
+              <div class="space-y-3">
+                <button id="clearAllHistoryBtn" class="w-full bg-transparent hover:bg-[#ef4444]/[0.08] text-[#ef4444] font-semibold text-[12px] py-2.5 rounded-lg transition flex items-center justify-center gap-2 border border-[#ef4444]/40 hover:border-[#ef4444]">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i> Clear All History
+                </button>
+                <button id="resetDefaultsBtn" class="w-full bg-transparent hover:bg-white/[0.04] text-[#a1a1aa] hover:text-white font-semibold text-[12px] py-2.5 rounded-lg transition flex items-center justify-center gap-2 border border-[#52525b]/60 hover:border-[#71717a]">
+                  <i class="fa-solid fa-arrow-rotate-left text-[10px]"></i> Reset to Defaults
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="saveBar" class="hidden fixed bottom-0 left-0 lg:left-64 right-0 z-40 backdrop-blur-xl bg-black/80 border-t border-white/10 px-4 sm:px-6 py-4 slide-up-bar">
+  <div class="max-w-[1500px] mx-auto flex flex-col sm:flex-row items-center justify-center gap-3">
+    <p class="text-[12px] text-[#a1a1aa] flex items-center gap-2">
+      <i class="fa-solid fa-circle-info text-[#22c55e] text-[10px]"></i> You have unsaved changes
+    </p>
+    <div class="flex gap-3">
+      <button id="saveBtn" class="bg-[#22c55e] hover:bg-[#16a34a] text-black font-semibold text-[13px] py-2.5 px-6 rounded-lg transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-floppy-disk text-[11px]"></i> Save Changes
+      </button>
+      <button id="cancelBtn" class="bg-transparent hover:bg-white/[0.04] text-[#a1a1aa] hover:text-white font-semibold text-[13px] py-2.5 px-6 rounded-lg transition border border-[#1f1f1f]">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="fixed bottom-24 right-6 px-5 py-3 rounded-lg shadow-lg text-sm font-semibold opacity-0 pointer-events-none transition-opacity duration-300 z-[60]"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/layout.js' %}"></script>
+<script src="{% static 'js/settings.js' %}"></script>
+{% endblock %}

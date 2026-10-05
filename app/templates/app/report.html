@@ -1,0 +1,211 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}AI Report — APKShield{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen">
+  {% include "app/_sidebar.html" with active="report" %}
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden"></div>
+
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+    {% include "app/_topbar.html" with title="AI Malware Report" subtitle="Deep analysis with family attribution" %}
+
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6" style="padding-bottom: 200px;">
+      <div class="space-y-5 max-w-[1500px] mx-auto">
+
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="flex flex-col lg:flex-row lg:items-center gap-6">
+            <div class="flex justify-center">
+              <div class="red-glow">
+                <div id="conicCircle" class="risk-circle-inner relative w-48 h-48 rounded-full flex items-center justify-center"
+                     style="background: conic-gradient(#ef4444 0deg, #ef4444 0deg, #17171a 0deg, #17171a 360deg);">
+                  <div class="absolute inset-3 rounded-full bg-[#0d0d0f] border border-[#1f1f23]"></div>
+                  <div class="relative flex flex-col items-center justify-center">
+                    <span id="riskScore" class="text-[48px] font-extrabold leading-none text-white">0</span>
+                    <span class="text-[11px] text-[#71717a] mt-1">/ 100</span>
+                  </div>
+                </div>
+                <p class="text-[10px] uppercase text-[#71717a] text-center mt-4" style="letter-spacing: 2px; font-weight: 600;">RISK SCORE</p>
+              </div>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <span id="classBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full font-bold text-[12px] border">
+                  <i class="fa-solid fa-skull-crossbones skull-pulse"></i> Malicious
+                </span>
+                <span class="text-[11px] font-mono text-[#52525b]" id="reportId">#—</span>
+              </div>
+              <h2 id="reportFilename" class="text-2xl font-bold mb-1">—</h2>
+              <p id="reportPackage" class="text-[12px] text-[#71717a] font-mono mb-3">—</p>
+              <p id="reportSummary" class="text-[13px] text-[#a1a1aa] leading-relaxed"></p>
+            </div>
+
+            <div class="lg:w-64 space-y-3 shrink-0">
+              <div class="bg-black/40 rounded-lg p-4 border border-[#1f1f23]">
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-[10px] uppercase tracking-widest text-[#52525b] font-semibold">AI Confidence</p>
+                  <span id="aiConfidenceVal" class="text-[13px] font-bold text-[#22c55e]">—</span>
+                </div>
+                <div class="w-full bg-[#17171a] rounded-full h-2 overflow-hidden mb-2">
+                  <div id="aiConfidenceBar" class="bg-[#22c55e] h-2 rounded-full transition-all duration-1000" style="width:0%"></div>
+                </div>
+                <p class="text-[10px] text-[#52525b] font-mono leading-relaxed">Model: XGBoost + Androguard</p>
+              </div>
+
+              <div class="bg-black/40 rounded-lg p-4 border border-[#1f1f23]">
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-[10px] uppercase tracking-widest text-[#52525b] font-semibold">Family Match</p>
+                  <span id="familyMatchVal" class="text-[13px] font-bold text-[#f59e0b]">—</span>
+                </div>
+                <div class="w-full bg-[#17171a] rounded-full h-2 overflow-hidden mb-2">
+                  <div id="familyMatchBar" class="bg-[#f59e0b] h-2 rounded-full transition-all duration-1000" style="width:0%"></div>
+                </div>
+                <p id="familyMatchDesc" class="text-[10px] text-[#52525b] font-mono leading-relaxed mb-3">—</p>
+                <a href="{% url 'threats' %}" class="w-full inline-flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#f59e0b] bg-[#f59e0b]/10 hover:bg-[#f59e0b]/20 border border-[#f59e0b]/30 rounded-md py-1.5 transition">
+                  <i class="fa-solid fa-database text-[9px]"></i> View Family in Threat DB
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/20 flex items-center justify-center">
+              <i class="fa-solid fa-virus text-[#ef4444] text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-[15px]">Malware Identification</h3>
+              <p class="text-[11px] text-[#71717a]">AI family attribution and behavior classification</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            <div class="rounded-lg p-4 flex flex-col items-center justify-center text-center" style="height: 120px; background: #111; border: 1px solid #222;">
+              <div class="w-9 h-9 rounded-lg bg-[#ef4444]/10 border border-[#ef4444]/20 flex items-center justify-center mb-2">
+                <i class="fa-solid fa-bug text-[#ef4444] text-sm"></i>
+              </div>
+              <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1.5">Family Name</p>
+              <p id="malFamily" class="text-[15px] font-bold text-[#ef4444]">—</p>
+            </div>
+
+            <div class="rounded-lg p-4 flex flex-col items-center justify-center text-center" style="height: 120px; background: #111; border: 1px solid #222;">
+              <div class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center mb-2">
+                <i class="fa-solid fa-folder text-white text-sm"></i>
+              </div>
+              <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1.5">Category</p>
+              <p id="malCategory" class="text-[15px] font-bold text-white">—</p>
+            </div>
+
+            <div class="rounded-lg p-4 flex flex-col items-center justify-center text-center" style="height: 120px; background: #111; border: 1px solid #222;">
+              <div class="w-9 h-9 rounded-lg bg-[#71717a]/10 border border-[#71717a]/20 flex items-center justify-center mb-2">
+                <i class="fa-solid fa-microchip text-[#a1a1aa] text-sm"></i>
+              </div>
+              <p class="text-[10px] uppercase tracking-widest text-[#52525b] mb-1.5">Detection Method</p>
+              <p class="text-[15px] font-bold text-[#a1a1aa]">Static + Behavioral AI</p>
+            </div>
+          </div>
+
+          <div class="bg-black/40 border border-[#1f1f23] rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fa-solid fa-brain text-[#22c55e] text-xs"></i>
+              <p class="text-[10px] uppercase tracking-widest text-[#52525b] font-semibold">AI Analysis Summary</p>
+            </div>
+            <p id="aiSummary" class="text-[13px] text-[#a1a1aa] leading-relaxed">—</p>
+          </div>
+        </section>
+
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20 flex items-center justify-center">
+              <i class="fa-solid fa-triangle-exclamation text-[#f59e0b] text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-[15px]">Key Risk Indicators</h3>
+              <p class="text-[11px] text-[#71717a]">Critical permissions abused by this APK</p>
+            </div>
+          </div>
+          <div id="riskIndicators" class="flex flex-wrap gap-2.5"></div>
+        </section>
+
+        <section class="bg-[#0d0d0f] border border-[#1f1f23] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center">
+              <i class="fa-solid fa-timeline text-[#22c55e] text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-[15px]">Behavior Timeline</h3>
+              <p class="text-[11px] text-[#71717a]">Observed execution chain in chronological order</p>
+            </div>
+          </div>
+
+          <div class="relative pl-10">
+            <div class="timeline-line"></div>
+            <div class="space-y-6">
+              <div class="relative">
+                <div class="absolute -left-10 top-1 w-6 h-6 rounded-full bg-[#22c55e]/15 border-2 border-[#22c55e] flex items-center justify-center">
+                  <span class="text-[10px] font-bold text-[#22c55e]">1</span>
+                </div>
+                <div class="bg-black/40 border border-[#1f1f23] rounded-lg p-4">
+                  <p class="text-[13px] font-semibold text-white mb-1">App requests sensitive permissions</p>
+                  <p class="text-[11px] text-[#71717a] leading-relaxed">At install time, the APK requests READ_SMS, SEND_SMS, and SYSTEM_ALERT_WINDOW — a classic Cerberus indicator.</p>
+                </div>
+              </div>
+              <div class="relative">
+                <div class="absolute -left-10 top-1 w-6 h-6 rounded-full bg-[#f59e0b]/15 border-2 border-[#f59e0b] flex items-center justify-center">
+                  <span class="text-[10px] font-bold text-[#f59e0b]">2</span>
+                </div>
+                <div class="bg-black/40 border border-[#1f1f23] rounded-lg p-4">
+                  <p class="text-[13px] font-semibold text-white mb-1">Loads payload via DexClassLoader</p>
+                  <p class="text-[11px] text-[#71717a] leading-relaxed">Downloads an encrypted DEX file from a remote C2 server and executes it dynamically to evade static detection.</p>
+                </div>
+              </div>
+              <div class="relative">
+                <div class="absolute -left-10 top-1 w-6 h-6 rounded-full bg-[#ef4444]/15 border-2 border-[#ef4444] flex items-center justify-center">
+                  <span class="text-[10px] font-bold text-[#ef4444]">3</span>
+                </div>
+                <div class="bg-black/40 border border-[#1f1f23] rounded-lg p-4">
+                  <p class="text-[13px] font-semibold text-white mb-1">Starts overlay on banking apps</p>
+                  <p class="text-[11px] text-[#71717a] leading-relaxed">Detects when the user opens a target banking app and injects a fake login screen to steal credentials in real time.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="fixed-footer no-print">
+  <button onclick="window.print()" class="flex-1 bg-[#22c55e] hover:bg-[#16a34a] text-black font-semibold rounded-lg transition flex items-center justify-center gap-2 text-[13px]">
+    <i class="fa-solid fa-file-pdf text-xs"></i> Download PDF Report
+  </button>
+  <a href="{% url 'dashboard' %}" class="flex-1 bg-transparent hover:bg-[#22c55e]/[0.08] text-[#22c55e] font-semibold rounded-lg transition flex items-center justify-center gap-2 border border-[#22c55e]/40 text-[13px]">
+    <i class="fa-solid fa-satellite-dish text-xs"></i> Scan Another APK
+  </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.REPORT_FROM_DB = {% if scan %}{
+    id: "{{ scan.id }}",
+    filename: "{{ scan.filename|escapejs }}",
+    package: "{{ scan.package|escapejs }}",
+    risk_score: {{ scan.risk_score }},
+    classification: "{{ scan.classification }}",
+    malware_family: "{{ scan.malware_family|default:''|escapejs }}",
+    malware_category: "{{ scan.malware_category|default:''|escapejs }}",
+    ai_confidence: {{ scan.ai_confidence }},
+    family_match: {{ scan.family_match }},
+    ai_summary: "{{ scan.ai_summary|escapejs }}",
+    recommendation: "{{ scan.recommendation|escapejs }}",
+    detected_risks: {{ scan.detected_risks|safe|default:"[]" }}
+  }{% else %}null{% endif %};
+</script>
+<script src="{% static 'js/layout.js' %}"></script>
+<script src="{% static 'js/report.js' %}"></script>
+{% endblock %}

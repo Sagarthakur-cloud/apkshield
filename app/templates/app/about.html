@@ -1,0 +1,115 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}About — APKShield{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen">
+  {% include "app/_sidebar.html" with active="about" %}
+  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden"></div>
+
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+    {% include "app/_topbar.html" with title="About APKShield" subtitle="Intelligent Android malware detection" %}
+
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div class="space-y-5 max-w-[1200px] mx-auto">
+
+        <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="w-11 h-11 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center mb-4">
+            <i class="fa-solid fa-shield-halved text-[#22c55e]"></i>
+          </div>
+          <h2 class="text-xl font-bold mb-3">About APKShield</h2>
+          <p class="text-[13px] text-[#a1a1aa] leading-relaxed mb-3">
+            APKShield is an intelligent Android malware detection system that analyzes APK files before installation.
+            It combines static analysis (permissions, API calls, certificates) with behavioral AI to identify threats
+            and attribute them to known malware families.
+          </p>
+          <p class="text-[13px] text-[#a1a1aa] leading-relaxed">
+            Built with Django, Androguard, and Quark-Engine, APKShield provides fast, accurate, and explainable
+            malware verdicts with detailed risk breakdowns.
+          </p>
+        </section>
+
+        <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center">
+              <i class="fa-solid fa-layer-group text-[#22c55e] text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-[16px]">Technology Stack</h3>
+              <p class="text-[11px] text-[#71717a]">Core components powering the detection engine</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="bg-[#121212] border border-[#1f1f1f] rounded-xl p-6 text-center">
+              <i class="fa-brands fa-python text-[#22c55e] text-[28px] mb-3"></i>
+              <p class="text-[14px] font-medium text-white">Python 3.11</p>
+              <p class="text-[11px] text-[#6b7280] mt-1">Core Language</p>
+            </div>
+            <div class="bg-[#121212] border border-[#1f1f1f] rounded-xl p-6 text-center">
+              <i class="fa-solid fa-server text-[#22c55e] text-[28px] mb-3"></i>
+              <p class="text-[14px] font-medium text-white">Django 5</p>
+              <p class="text-[11px] text-[#6b7280] mt-1">Backend Framework</p>
+            </div>
+            <div class="bg-[#121212] border border-[#1f1f1f] rounded-xl p-6 text-center">
+              <i class="fa-brands fa-android text-[#22c55e] text-[28px] mb-3"></i>
+              <p class="text-[14px] font-medium text-white">Androguard</p>
+              <p class="text-[11px] text-[#6b7280] mt-1">APK Analysis</p>
+            </div>
+            <div class="bg-[#121212] border border-[#1f1f1f] rounded-xl p-6 text-center">
+              <i class="fa-solid fa-bolt text-[#22c55e] text-[28px] mb-3"></i>
+              <p class="text-[14px] font-medium text-white">Quark-Engine</p>
+              <p class="text-[11px] text-[#6b7280] mt-1">Behavioral Analysis</p>
+            </div>
+            <div class="bg-[#121212] border border-[#1f1f1f] rounded-xl p-6 text-center">
+              <i class="fa-solid fa-database text-[#22c55e] text-[28px] mb-3"></i>
+              <p class="text-[14px] font-medium text-white">XGBoost</p>
+              <p class="text-[11px] text-[#6b7280] mt-1">98.2% Accuracy</p>
+            </div>
+            <div class="bg-[#121212] border border-[#1f1f1f] rounded-xl p-6 text-center">
+              <i class="fa-solid fa-shield-halved text-[#22c55e] text-[28px] mb-3"></i>
+              <p class="text-[14px] font-medium text-white">VirusTotal</p>
+              <p class="text-[11px] text-[#6b7280] mt-1">Threat Intel</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-[#151515] border border-[#1f1f1f] rounded-xl p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-9 h-9 rounded-lg bg-[#22c55e]/10 border border-[#22c55e]/20 flex items-center justify-center">
+              <i class="fa-solid fa-star text-[#22c55e] text-sm"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-[16px]">Key Features</h3>
+              <p class="text-[11px] text-[#71717a]">What makes APKShield different</p>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3 text-[13px] text-[#d4d4d8]">
+              <i class="fa-solid fa-circle-check text-[#22c55e] text-sm mt-0.5"></i>
+              <span>Static Analysis (Permissions, API calls, Certificates)</span>
+            </div>
+            <div class="flex items-start gap-3 text-[13px] text-[#d4d4d8]">
+              <i class="fa-solid fa-circle-check text-[#22c55e] text-sm mt-0.5"></i>
+              <span>Behavioral AI with Quark-Engine</span>
+            </div>
+            <div class="flex items-start gap-3 text-[13px] text-[#d4d4d8]">
+              <i class="fa-solid fa-circle-check text-[#22c55e] text-sm mt-0.5"></i>
+              <span>Family Attribution - Cerberus, Anubis, Joker</span>
+            </div>
+            <div class="flex items-start gap-3 text-[13px] text-[#d4d4d8]">
+              <i class="fa-solid fa-circle-check text-[#22c55e] text-sm mt-0.5"></i>
+              <span>Explainable Risk Score 0-100</span>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/layout.js' %}"></script>
+{% endblock %}

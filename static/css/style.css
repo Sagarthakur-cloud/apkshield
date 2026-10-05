@@ -1,0 +1,384 @@
+/* ═══════════════════════════════════════════════
+   APKShield — Shared Styles
+   ═══════════════════════════════════════════════ */
+
+html, body { height: 100%; }
+body { background: #0a0a0a; }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #27272a; }
+
+/* Drop zone active */
+.drag-active {
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.04) !important;
+}
+
+/* Pulse ring (empty gauge) */
+@keyframes pulseRing {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.65; transform: scale(1.015); }
+}
+.pulse-ring { animation: pulseRing 2.6s ease-in-out infinite; transform-origin: center; }
+
+/* Irregular pulse (status dots) */
+@keyframes irregularPulse {
+  0%   { opacity: 1;   transform: scale(1); }
+  22%  { opacity: 0.4; transform: scale(0.92); }
+  47%  { opacity: 1;   transform: scale(1.05); }
+  68%  { opacity: 0.5; transform: scale(0.96); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+.dot-pulse { animation: irregularPulse 3.7s ease-in-out infinite; }
+
+/* Fade in */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.35s ease forwards; }
+
+@keyframes fadeInSoft {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-soft { animation: fadeInSoft 0.4s ease forwards; }
+
+/* Dashed ring (SVG) */
+.dashed-ring { stroke-dasharray: 6 6; stroke-linecap: round; }
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton-line {
+  background: linear-gradient(90deg, #17171a 0%, #232327 40%, #17171a 80%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Toggle switch */
+.toggle-switch {
+  width: 36px; height: 20px; background: #27272a; border-radius: 9999px;
+  position: relative; cursor: pointer; transition: background 0.2s;
+}
+.toggle-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 9999px;
+  background: white; transition: transform 0.2s;
+}
+.toggle-switch.on { background: #22c55e; }
+.toggle-switch.on::after { transform: translateX(16px); }
+
+/* Print */
+@media print {
+  body { background: white !important; color: black !important; }
+  #sidebar, header, .no-print { display: none !important; }
+}/* ═══════════════════════════════════════════════
+   APKShield — Shared Styles
+   ═══════════════════════════════════════════════ */
+
+html, body { height: 100%; }
+body { background: #0a0a0a; }
+
+/* ── Scrollbars ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #1f1f23; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #27272a; }
+
+/* ── Drop zone active (index.html) ── */
+.drag-active {
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.04) !important;
+}
+
+/* ── Pulse ring (empty gauge on index.html) ── */
+@keyframes pulseRing {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%      { opacity: 0.65; transform: scale(1.015); }
+}
+.pulse-ring { animation: pulseRing 2.6s ease-in-out infinite; transform-origin: center; }
+
+/* ── Irregular pulse (status dots) ── */
+@keyframes irregularPulse {
+  0%   { opacity: 1;   transform: scale(1); }
+  22%  { opacity: 0.4; transform: scale(0.92); }
+  47%  { opacity: 1;   transform: scale(1.05); }
+  68%  { opacity: 0.5; transform: scale(0.96); }
+  100% { opacity: 1;   transform: scale(1); }
+}
+.dot-pulse { animation: irregularPulse 3.7s ease-in-out infinite; }
+
+/* ── Fade in ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.35s ease forwards; }
+
+@keyframes fadeInSoft {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-soft { animation: fadeInSoft 0.4s ease forwards; }
+
+/* ── Dashed ring (index.html empty gauge) ── */
+.dashed-ring { stroke-dasharray: 6 6; stroke-linecap: round; }
+
+/* ── Skeleton shimmer (index.html) ── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton-line {
+  background: linear-gradient(90deg, #17171a 0%, #232327 40%, #17171a 80%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* ── Toggle switch (settings.html) ── */
+.toggle-switch {
+  width: 36px; height: 20px; background: #27272a; border-radius: 9999px;
+  position: relative; cursor: pointer; transition: background 0.2s;
+}
+.toggle-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 9999px;
+  background: white; transition: transform 0.2s;
+}
+.toggle-switch.on { background: #22c55e; }
+.toggle-switch.on::after { transform: translateX(16px); }
+
+/* ═══════════════════════════════════════════════
+   history.html — Custom checkbox + risk bar
+   ═══════════════════════════════════════════════ */
+
+/* Custom checkbox */
+.cbx {
+  width: 16px; height: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #17171a;
+  border: 1px solid #27272a;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.cbx:hover { border-color: #22c55e; }
+.cbx:checked { background: #22c55e; border-color: #22c55e; }
+.cbx:checked::after {
+  content: "";
+  position: absolute;
+  top: 1px; left: 4.5px;
+  width: 5px; height: 9px;
+  border: solid #0a0a0a;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.cbx:indeterminate {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+.cbx:indeterminate::after {
+  content: "";
+  position: absolute;
+  top: 6px; left: 3px;
+  width: 8px; height: 2px;
+  background: #0a0a0a;
+  border-radius: 1px;
+}
+
+/* Risk bar (progress bar behind score in history.html) */
+.risk-bar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  height: 20px;
+  background: #17171a;
+}
+.risk-bar-fill {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  transition: width .8s ease;
+}
+.risk-bar-text {
+  position: relative;
+  z-index: 2;
+  padding: 0 8px;
+  line-height: 20px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ═══════════════════════════════════════════════
+   report.html — Skull pulse, red glow, circle
+   ═══════════════════════════════════════════════ */
+
+/* Pulsing skull icon on Malicious pill */
+@keyframes skullPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.88); }
+}
+.skull-pulse { animation: skullPulse 1.6s ease-in-out infinite; }
+
+/* Red radial glow behind the risk circle */
+.red-glow { position: relative; }
+.red-glow::before {
+  content: "";
+  position: absolute;
+  inset: -25px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(239,68,68,0.4) 0%, rgba(239,68,68,0) 70%);
+  filter: blur(18px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Inner shadow + outer glow on the risk circle */
+.risk-circle-inner {
+  box-shadow:
+    inset 0 0 30px rgba(239,68,68,0.35),
+    inset 0 0 60px rgba(239,68,68,0.15),
+    0 0 40px -6px rgba(239,68,68,0.5);
+}
+
+/* Behavior timeline vertical line */
+.timeline-line {
+  position: absolute;
+  left: 11px;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    #22c55e 0%, #22c55e 33%,
+    #f59e0b 33%, #f59e0b 66%,
+    #ef4444 66%, #ef4444 100%
+  );
+  opacity: 0.4;
+}
+
+/* Permission pill + hover tooltip */
+.perm-pill { position: relative; }
+.perm-pill .perm-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  padding: 6px 10px;
+  background: #17171a;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  font-size: 10px;
+  color: #a1a1aa;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 30;
+}
+.perm-pill .perm-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px; height: 8px;
+  background: #17171a;
+  border-right: 1px solid #27272a;
+  border-bottom: 1px solid #27272a;
+  rotate: 45deg;
+  margin-top: -5px;
+}
+.perm-pill:hover .perm-tooltip { opacity: 1; }
+
+/* ═══════════════════════════════════════════════
+   Global fixed footer (used on report.html)
+   — but respects sidebar width on desktop
+   ═══════════════════════════════════════════════ */
+.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: rgba(10,10,10,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  z-index: 50;
+  padding: 16px 24px;
+  display: flex;
+  gap: 16px;
+}
+@media (min-width: 1024px) {
+  .fixed-footer { left: 280px; }
+}
+
+/* ═══════════════════════════════════════════════
+   Print styles (report.html → PDF)
+   ═══════════════════════════════════════════════ */
+@media print {
+  body { background: white !important; color: black !important; }
+  #sidebar, header, .no-print, .fixed-footer { display: none !important; }
+  .bg-\[\#0d0d0f\], .bg-\[\#0a0a0a\], .bg-black\/40, .bg-black\/60 {
+    background: white !important;
+    border: 1px solid #ddd !important;
+  }
+  .text-white, .text-\[\#a1a1aa\], .text-\[\#d4d4d8\],
+  .text-\[\#ef4444\], .text-\[\#f59e0b\], .text-\[\#22c55e\] {
+    color: black !important;
+  }
+}
+
+/* Custom checkbox (history) */
+.cbx { width:16px; height:16px; appearance:none; background:#17171a; border:1px solid #27272a; border-radius:4px; cursor:pointer; position:relative; transition:all .15s; }
+.cbx:hover { border-color:#22c55e; }
+.cbx:checked { background:#22c55e; border-color:#22c55e; }
+.cbx:checked::after { content:""; position:absolute; top:1px; left:4.5px; width:5px; height:9px; border:solid #0a0a0a; border-width:0 2px 2px 0; transform:rotate(45deg); }
+
+/* Risk bar (history) */
+.risk-bar { position:relative; overflow:hidden; border-radius:4px; height:20px; background:#17171a; }
+.risk-bar-fill { position:absolute; top:0; left:0; height:100%; transition:width .8s ease; }
+.risk-bar-text { position:relative; z-index:2; padding:0 8px; line-height:20px; font-size:11px; font-family:'JetBrains Mono', monospace; }
+
+/* Skull pulse (report) */
+@keyframes skullPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.55;transform:scale(.88);} }
+.skull-pulse { animation:skullPulse 1.6s ease-in-out infinite; }
+
+/* Red glow + inner shadow */
+.red-glow { position:relative; }
+.red-glow::before { content:""; position:absolute; inset:-25px; border-radius:9999px; background:radial-gradient(circle, rgba(239,68,68,.4) 0%, rgba(239,68,68,0) 70%); filter:blur(18px); z-index:0; pointer-events:none; }
+.risk-circle-inner { box-shadow: inset 0 0 30px rgba(239,68,68,.35), inset 0 0 60px rgba(239,68,68,.15), 0 0 40px -6px rgba(239,68,68,.5); }
+
+/* Timeline */
+.timeline-line { position:absolute; left:11px; top:22px; bottom:22px; width:2px; background:linear-gradient(to bottom, #22c55e 0%, #22c55e 33%, #f59e0b 33%, #f59e0b 66%, #ef4444 66%, #ef4444 100%); opacity:.4; }
+
+/* Permission pills */
+.perm-pill { position:relative; }
+.perm-pill .perm-tooltip { position:absolute; bottom:100%; left:50%; transform:translateX(-50%) translateY(-6px); padding:6px 10px; background:#17171a; border:1px solid #27272a; border-radius:6px; font-size:10px; color:#a1a1aa; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s; z-index:30; }
+.perm-pill:hover .perm-tooltip { opacity:1; }
+
+/* Fixed footer (report) */
+.fixed-footer { position:fixed; bottom:0; left:0; right:0; height:80px; background:rgba(10,10,10,.85); backdrop-filter:blur(20px); border-top:1px solid rgba(255,255,255,.1); z-index:50; padding:16px 24px; display:flex; gap:16px; }
+@media (min-width:1024px) { .fixed-footer { left:280px; } }
+
+/* Toggle switch (settings) */
+.toggle-switch { width:40px; height:22px; background:#27272a; border-radius:9999px; position:relative; cursor:pointer; transition:background .25s; flex-shrink:0; }
+.toggle-switch::after { content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:9999px; background:white; transition:transform .25s; box-shadow:0 1px 3px rgba(0,0,0,.4); }
+.toggle-switch.on { background:#22c55e; }
+.toggle-switch.on::after { transform:translateX(18px); }
+
+/* Range slider (settings) */
+input[type="range"].risk-slider { -webkit-appearance:none; appearance:none; height:6px; background:#1f1f1f; border-radius:9999px; outline:none; cursor:pointer; width:100%; }
+input[type="range"].risk-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; background:#22c55e; border-radius:9999px; border:2px solid #0a0a0a; box-shadow:0 0 10px rgba(34,197,94,.5); cursor:pointer; }

@@ -1,0 +1,20 @@
+<header class="h-16 sticky top-0 z-30 bg-[#0a0a0a]/85 backdrop-blur-md border-b border-[#1f1f23] flex items-center justify-between px-4 sm:px-6 shrink-0">
+  <div class="flex items-center gap-3">
+    <button id="sidebarToggle" class="lg:hidden w-9 h-9 rounded-xl bg-[#0d0d0f] border border-[#1f1f23] flex items-center justify-center text-[#a1a1aa] hover:text-white transition">
+      <i class="fa-solid fa-bars text-sm"></i>
+    </button>
+    <div>
+      <h2 class="font-bold text-base sm:text-lg leading-tight">{{ title }}</h2>
+      <p class="text-[11px] text-[#71717a] leading-tight hidden sm:block">{{ subtitle }}</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 sm:gap-3">
+    <span class="hidden sm:flex items-center gap-2 text-xs text-[#a1a1aa] bg-[#0d0d0f] border border-[#1f1f23] rounded-lg px-3 py-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-[#22c55e] dot-pulse"></span>Engine Online
+    </span>
+    <button class="w-9 h-9 rounded-xl bg-[#0d0d0f] border border-[#1f1f23] hover:border-[#22c55e]/40 transition flex items-center justify-center text-[#a1a1aa] hover:text-[#22c55e]">
+      <i class="fa-solid fa-bell text-sm"></i>
+    </button>
+  </div>
+</header>
