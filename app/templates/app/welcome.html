@@ -1,0 +1,969 @@
+{% extends "app/base.html" %}
+{% load static %}
+{% block title %}APKShield — Android APK Malware Scanner{% endblock %}
+
+{% block head %}
+<style>
+  :root {
+    --bg:        #080A0D;
+    --bg-card:   #11151C;
+    --bg-hover:  #151A22;
+    --border:    #1C2128;
+    --border-hi: #2A313B;
+    --text:      #E6E8EB;
+    --text-dim:  #8B93A1;
+    --text-mute: #5A626E;
+    --accent:    #10B981;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); }
+
+  /* Subtle grid */
+  .grid-subtle {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 80%);
+    pointer-events: none;
+  }
+
+  /* Live dot */
+  @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .live-dot { animation: livePulse 2s ease-in-out infinite; }
+
+  /* Fade-in */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in {
+    opacity: 0;
+    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .d-1 { animation-delay: 0.05s; }
+  .d-2 { animation-delay: 0.15s; }
+  .d-3 { animation-delay: 0.25s; }
+  .d-4 { animation-delay: 0.35s; }
+
+  /* Reveal on scroll */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Dotted underline */
+  .link-dotted {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--text-mute);
+    text-underline-offset: 3px;
+  }
+
+  /* Browser frame */
+  .browser-frame {
+    background: #0D1117;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+  }
+  .browser-dots {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .browser-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #2A313B;
+  }
+
+  /* Risk bar */
+  .risk-bar {
+    height: 6px;
+    background: #1C2128;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .risk-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 1s ease-out;
+  }
+
+  /* Step visibility for scrollytelling */
+  .step-panel {
+    opacity: 0.15;
+    transition: opacity 0.5s ease;
+  }
+  .step-panel.active {
+    opacity: 1;
+  }
+
+  /* Mockup scene */
+  .mockup-scene {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-width: 420px;
+  }
+  .mockup-scene > .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+  .mockup-scene > .scene.active {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+  }
+
+  /* Code block */
+  .code-block {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 1.7;
+  }
+
+  /* Circular progress */
+  .circle-progress {
+    transform: rotate(-90deg);
+  }
+  .circle-progress circle {
+    transition: stroke-dashoffset 1s ease-out;
+  }
+
+  /* Blinking cursor */
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  .cursor { animation: blink 1s steps(2) infinite; }
+
+  /* Scrollbar styling for code area */
+  .code-scroll::-webkit-scrollbar { width: 4px; }
+  .code-scroll::-webkit-scrollbar-track { background: transparent; }
+  .code-scroll::-webkit-scrollbar-thumb { background: #2A313B; border-radius: 2px; }
+</style>
+{% endblock %}
+
+
+{% block body %}
+
+<!-- ═══════════════════════════════════════════════
+     NAVBAR
+     ═══════════════════════════════════════════════ -->
+<nav class="fixed top-0 left-0 right-0 z-50 border-b border-[#1C2128]" style="background: rgba(8,10,13,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="flex items-center justify-between h-14">
+
+      <!-- Logo -->
+      <a href="{% url 'welcome' %}" class="flex items-center gap-2.5">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z" stroke="#E6E8EB" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M9 12l2 2 4-4" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="flex flex-col leading-none">
+          <span class="font-semibold text-[14px] text-[#E6E8EB] tracking-tight">APKShield</span>
+          <span class="text-[9px] text-[#5A626E] tracking-[0.1em] mt-0.5">INTELLIGENT MALWARE DETECTION</span>
+        </div>
+      </a>
+
+      <!-- Right links -->
+      <div class="hidden md:flex items-center gap-1">
+        <a href="#workflow" class="px-3 py-1.5 text-[13px] text-[#8B93A1] hover:text-[#E6E8EB] transition rounded-md">
+          Workflow
+        </a>
+        <a href="#features" class="px-3 py-1.5 text-[13px] text-[#8B93A1] hover:text-[#E6E8EB] transition rounded-md">
+          Features
+        </a>
+        <a href="{% url 'login' %}"
+           class="ml-2 px-4 py-1.5 text-[13px] font-medium text-[#080A0D] bg-[#E6E8EB] hover:bg-white rounded-md transition">
+          Live Scan
+        </a>
+      </div>
+
+      <a href="{% url 'login' %}"
+         class="md:hidden px-3 py-1.5 text-[12px] font-medium text-[#080A0D] bg-[#E6E8EB] rounded-md">
+        Live Scan
+      </a>
+
+    </div>
+  </div>
+</nav>
+
+
+<!-- ═══════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════ -->
+<section class="relative min-h-screen flex items-center pt-14 overflow-hidden">
+  <div class="grid-subtle"></div>
+
+  <div class="relative max-w-[1200px] mx-auto px-6 py-20 w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+
+      <!-- LEFT -->
+      <div class="lg:col-span-6">
+
+        <!-- Status pill -->
+        <div class="fade-in d-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#1C2128] bg-[#0D1117] mb-8">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#10B981] live-dot"></span>
+          <span class="text-[12px] text-[#8B93A1]">Live Engine: Androguard + XGBoost</span>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="fade-in d-2 text-[#E6E8EB] font-bold text-[40px] sm:text-[48px] lg:text-[56px] leading-[1.08] tracking-[-0.02em] mb-6">
+          Scan Android APKs<br/>
+          before you install.
+        </h1>
+
+        <!-- Subtext -->
+        <p class="fade-in d-3 text-[16px] text-[#8B93A1] leading-[1.7] max-w-[520px] mb-8">
+          APKShield analyzes permissions, certificates, and bytecode patterns to detect malware families like
+          <span class="link-dotted">Cerberus</span>,
+          <span class="link-dotted">Joker</span>, and
+          <span class="link-dotted">BankBot</span> — without ever executing the APK.
+        </p>
+
+        <!-- CTAs -->
+        <div class="fade-in d-4 flex flex-wrap items-center gap-3">
+          <a href="{% url 'signup' %}"
+             class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#E6E8EB] hover:bg-white text-[#080A0D] text-[14px] font-medium rounded-lg transition">
+            Start Scanning
+          </a>
+          <a href="#workflow"
+             class="inline-flex items-center gap-1.5 px-4 py-2.5 text-[14px] text-[#8B93A1] hover:text-[#E6E8EB] transition">
+            See Workflow
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- RIGHT — Hero mockup (static, but same style as scrollytelling) -->
+      <div class="lg:col-span-6 flex justify-center lg:justify-end">
+        <div class="fade-in d-4 w-full max-w-[420px]">
+
+          <div class="browser-frame">
+            <div class="browser-dots">
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="ml-4 flex-1">
+                <div class="text-[10px] font-mono text-[#5A626E] bg-[#080A0D] px-2 py-0.5 rounded border border-[#1C2128] inline-block">
+                  apkshield.io/scan
+                </div>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-5 pb-5 border-b border-[#1C2128]">
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <div class="w-6 h-6 rounded bg-[#1C2128] flex items-center justify-center">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.5">
+                        <rect x="5" y="2" width="14" height="20" rx="2"/>
+                        <path d="M12 18h.01"/>
+                      </svg>
+                    </div>
+                    <span class="text-[13px] font-mono text-[#E6E8EB]">com.fake.bankapp</span>
+                  </div>
+                  <div class="text-[11px] text-[#5A626E] font-mono">8.42 MB</div>
+                </div>
+
+                <div class="text-right">
+                  <div class="text-[10px] uppercase tracking-wider text-[#5A626E] mb-1">Risk Score</div>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-[32px] font-bold leading-none text-[#10B981]">36</span>
+                    <span class="text-[14px] text-[#5A626E]">/ 100</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <div class="risk-bar">
+                  <div class="risk-bar-fill" style="width: 36%;"></div>
+                </div>
+                <div class="flex items-center justify-between mt-2 text-[10px] text-[#5A626E] font-mono">
+                  <span>Signature 3%</span>
+                  <span>Heuristic 3%</span>
+                  <span>Behavior 55%</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 pt-4 border-t border-[#1C2128]">
+                <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#10B981] px-2 py-1 rounded border border-[#10B981]/30 bg-[#10B981]/5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                  SAFE
+                </span>
+                <span class="text-[11px] text-[#5A626E]">No threats detected</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     WORKFLOW — STICKY SCROLLYTELLING
+     ═══════════════════════════════════════════════ -->
+<section id="workflow" class="relative border-t border-[#1C2128]">
+
+  <div class="max-w-[1200px] mx-auto px-6">
+
+    <!-- Section header -->
+    <div class="pt-24 pb-12 max-w-[640px] reveal">
+      <div class="text-[11px] uppercase tracking-[0.15em] text-[#5A626E] mb-4">
+        The Workflow
+      </div>
+      <h2 class="text-[32px] sm:text-[40px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.15] mb-4">
+        From upload to verdict in four steps.
+      </h2>
+      <p class="text-[16px] text-[#8B93A1] leading-[1.7]">
+        Every APK passes through a deterministic pipeline — no execution, no sandbox waiting.
+      </p>
+    </div>
+
+    <!-- Two-column layout: sticky left mockup, scrollable right steps -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+      <!-- LEFT — STICKY MOCKUP -->
+      <div class="lg:col-span-5 hidden lg:block">
+        <div class="sticky top-24">
+
+          <div class="mockup-scene">
+
+            <!-- SCENE 1 — Upload -->
+            <div class="scene active" data-scene="1">
+              <div class="browser-frame h-full">
+                <div class="browser-dots">
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <span class="ml-4 text-[10px] font-mono text-[#5A626E]">apkshield.io/upload</span>
+                </div>
+                <div class="p-6 h-[calc(100%-42px)] flex flex-col">
+                  <div class="text-[11px] uppercase tracking-wider text-[#5A626E] mb-4">Upload APK</div>
+
+                  <div class="flex-1 border border-dashed border-[#2A313B] rounded-lg flex flex-col items-center justify-center p-6 bg-[#0A0D12]">
+                    <div class="w-12 h-12 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.5">
+                        <path d="M12 3v13M6 9l6-6 6 6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 20h14" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                    <p class="text-[13px] text-[#E6E8EB] font-medium mb-1">Drop APK to scan</p>
+                    <p class="text-[11px] text-[#5A626E]">or browse files</p>
+                  </div>
+
+                  <div class="mt-4 flex items-center gap-2 p-3 rounded-md bg-[#0A0D12] border border-[#1C2128]">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.5">
+                      <rect x="5" y="2" width="14" height="20" rx="2"/>
+                      <path d="M12 18h.01"/>
+                    </svg>
+                    <span class="text-[12px] font-mono text-[#8B93A1] flex-1">NetMirror.apk</span>
+                    <span class="text-[10px] text-[#5A626E] font-mono">12.4 MB</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCENE 2 — Analysis -->
+            <div class="scene" data-scene="2">
+              <div class="browser-frame h-full">
+                <div class="browser-dots">
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <span class="ml-4 text-[10px] font-mono text-[#5A626E]">apkshield.io/analyze</span>
+                </div>
+                <div class="p-5 h-[calc(100%-42px)] flex flex-col">
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] uppercase tracking-wider text-[#5A626E]">Analysis</span>
+                    <span class="text-[10px] font-mono text-[#10B981] flex items-center gap-1.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-[#10B981] live-dot"></span>
+                      scanning
+                    </span>
+                  </div>
+
+                  <div class="code-block bg-[#0A0D12] border border-[#1C2128] rounded-md p-3 flex-1 overflow-hidden">
+                    <div class="text-[#5A626E]">// parsing AndroidManifest.xml</div>
+                    <div class="text-[#E6E8EB]">permissions <span class="text-[#5A626E]">=</span> apk.<span class="text-[#8B93A1]">get_permissions</span>()</div>
+                    <div class="text-[#5A626E] mt-2">// scanning DEX bytecode</div>
+                    <div class="text-[#E6E8EB]">dex <span class="text-[#5A626E]">=</span> apk.<span class="text-[#8B93A1]">get_dex</span>()</div>
+                    <div class="text-[#5A626E] mt-2">// verifying certificate</div>
+                    <div class="text-[#E6E8EB]">cert <span class="text-[#5A626E]">=</span> apk.<span class="text-[#8B93A1]">get_cert</span>()</div>
+                    <div class="text-[#10B981] mt-2">✓ done in 2.4s <span class="cursor">_</span></div>
+                  </div>
+
+                  <div class="mt-3 space-y-1.5">
+                    <div class="flex items-center justify-between px-3 py-2 rounded-md bg-[#0A0D12] border border-[#1C2128]">
+                      <span class="text-[11px] font-mono text-[#8B93A1]">READ_SMS</span>
+                      <span class="text-[9px] uppercase tracking-wider text-[#10B981]">High</span>
+                    </div>
+                    <div class="flex items-center justify-between px-3 py-2 rounded-md bg-[#0A0D12] border border-[#1C2128]">
+                      <span class="text-[11px] font-mono text-[#8B93A1]">SEND_SMS</span>
+                      <span class="text-[9px] uppercase tracking-wider text-[#10B981]">High</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCENE 3 — Score -->
+            <div class="scene" data-scene="3">
+              <div class="browser-frame h-full">
+                <div class="browser-dots">
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <span class="ml-4 text-[10px] font-mono text-[#5A626E]">apkshield.io/score</span>
+                </div>
+                <div class="p-6 h-[calc(100%-42px)] flex flex-col items-center justify-center">
+                  <div class="text-[11px] uppercase tracking-wider text-[#5A626E] mb-6">Risk Score</div>
+
+                  <div class="relative w-40 h-40 mb-6">
+                    <svg class="circle-progress w-40 h-40" viewBox="0 0 160 160">
+                      <circle cx="80" cy="80" r="70" stroke="#1C2128" stroke-width="8" fill="none"/>
+                      <circle cx="80" cy="80" r="70" stroke="#10B981" stroke-width="8" fill="none"
+                              stroke-linecap="round"
+                              stroke-dasharray="440"
+                              stroke-dashoffset="440"
+                              class="risk-circle"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-[44px] font-bold text-[#E6E8EB] leading-none">36</span>
+                      <span class="text-[10px] text-[#5A626E] mt-1">/ 100</span>
+                    </div>
+                  </div>
+
+                  <div class="w-full space-y-3 mb-4">
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] mb-1">
+                        <span class="text-[#8B93A1]">Signature Match</span>
+                        <span class="font-mono text-[#E6E8EB]">3%</span>
+                      </div>
+                      <div class="risk-bar"><div class="risk-bar-fill" style="width: 3%;"></div></div>
+                    </div>
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] mb-1">
+                        <span class="text-[#8B93A1]">Heuristic</span>
+                        <span class="font-mono text-[#E6E8EB]">3%</span>
+                      </div>
+                      <div class="risk-bar"><div class="risk-bar-fill" style="width: 3%;"></div></div>
+                    </div>
+                    <div>
+                      <div class="flex items-center justify-between text-[10px] mb-1">
+                        <span class="text-[#8B93A1]">Behavior</span>
+                        <span class="font-mono text-[#E6E8EB]">55%</span>
+                      </div>
+                      <div class="risk-bar"><div class="risk-bar-fill" style="width: 55%;"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SCENE 4 — Report -->
+            <div class="scene" data-scene="4">
+              <div class="browser-frame h-full">
+                <div class="browser-dots">
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <div class="browser-dot"></div>
+                  <span class="ml-4 text-[10px] font-mono text-[#5A626E]">apkshield.io/report</span>
+                </div>
+                <div class="p-6 h-[calc(100%-42px)] flex flex-col">
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#10B981] px-2 py-1 rounded border border-[#10B981]/30 bg-[#10B981]/5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                      SAFE
+                    </span>
+                    <span class="text-[11px] text-[#5A626E] font-mono">#SCN-2024-1058</span>
+                  </div>
+
+                  <h3 class="text-[15px] font-semibold text-[#E6E8EB] mb-1">com.fake.bankapp</h3>
+                  <p class="text-[11px] text-[#5A626E] font-mono mb-4">8.42 MB · SHA: a3f8c2e9…</p>
+
+                  <div class="space-y-2 text-[11px]">
+                    <div class="flex items-center justify-between py-2 border-b border-[#1C2128]">
+                      <span class="text-[#5A626E]">Risk Score</span>
+                      <span class="font-mono text-[#10B981]">36 / 100</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-[#1C2128]">
+                      <span class="text-[#5A626E]">Detection</span>
+                      <span class="font-mono text-[#E6E8EB]">Signature + Heuristic</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-[#1C2128]">
+                      <span class="text-[#5A626E]">Permissions</span>
+                      <span class="font-mono text-[#E6E8EB]">4 detected</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                      <span class="text-[#5A626E]">Verified</span>
+                      <span class="font-mono text-[#10B981]">✓</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-auto pt-4 flex gap-2">
+                    <button class="flex-1 text-[11px] py-2 rounded-md bg-[#E6E8EB] text-[#080A0D] font-medium">
+                      Export PDF
+                    </button>
+                    <button class="flex-1 text-[11px] py-2 rounded-md border border-[#2A313B] text-[#8B93A1]">
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Step indicator dots -->
+          <div class="flex items-center justify-center gap-2 mt-6">
+            <div class="step-dot w-6 h-1 rounded-full bg-[#10B981] transition-all" data-dot="1"></div>
+            <div class="step-dot w-1.5 h-1 rounded-full bg-[#2A313B] transition-all" data-dot="2"></div>
+            <div class="step-dot w-1.5 h-1 rounded-full bg-[#2A313B] transition-all" data-dot="3"></div>
+            <div class="step-dot w-1.5 h-1 rounded-full bg-[#2A313B] transition-all" data-dot="4"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT — SCROLLABLE STEPS -->
+      <div class="lg:col-span-7">
+
+        <!-- STEP 1 -->
+        <div class="step-panel active min-h-[80vh] flex items-center py-16" data-step="1">
+          <div class="max-w-[520px]">
+            <div class="text-[11px] font-mono text-[#5A626E] mb-3">STEP 01 / 04</div>
+            <h3 class="text-[24px] sm:text-[32px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.2] mb-4">
+              APK Upload &amp; Data Ingestion
+            </h3>
+            <p class="text-[15px] text-[#8B93A1] leading-[1.75] mb-6">
+              Drop an APK file or paste a Play Store URL. We extract <span class="font-mono text-[#E6E8EB] text-[13px]">AndroidManifest.xml</span>,
+              <span class="font-mono text-[#E6E8EB] text-[13px]">classes.dex</span>, and signing certificates
+              — entirely without execution. Nothing runs.
+            </p>
+            <ul class="space-y-2 text-[13px] text-[#8B93A1]">
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Manifest parsing
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Certificate chain verification
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                DEX bytecode extraction
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-panel min-h-[80vh] flex items-center py-16" data-step="2">
+          <div class="max-w-[520px]">
+            <div class="text-[11px] font-mono text-[#5A626E] mb-3">STEP 02 / 04</div>
+            <h3 class="text-[24px] sm:text-[32px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.2] mb-4">
+              AI Analysis Engine
+            </h3>
+            <p class="text-[15px] text-[#8B93A1] leading-[1.75] mb-6">
+              Androguard parses every permission, API call, and hidden file. Our XGBoost model — trained on the
+              <span class="text-[#E6E8EB] font-medium">CICMalDroid 2020</span> dataset — predicts the malware family.
+            </p>
+            <ul class="space-y-2 text-[13px] text-[#8B93A1]">
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Static analysis with Androguard
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                XGBoost — 470 features, 93% accuracy
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Family attribution (Cerberus, Joker, BankBot)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-panel min-h-[80vh] flex items-center py-16" data-step="3">
+          <div class="max-w-[520px]">
+            <div class="text-[11px] font-mono text-[#5A626E] mb-3">STEP 03 / 04</div>
+            <h3 class="text-[24px] sm:text-[32px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.2] mb-4">
+              Risk Scoring &amp; Detection Breakdown
+            </h3>
+            <p class="text-[15px] text-[#8B93A1] leading-[1.75] mb-6">
+              Hybrid detection: rule-based heuristics and ML predictions combine into a single
+              <span class="text-[#E6E8EB] font-medium">0–100 risk score</span>. You see exactly which signals fired.
+            </p>
+            <ul class="space-y-2 text-[13px] text-[#8B93A1]">
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Signature match — known malware hashes
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Heuristic — rule-based scoring
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Behavior — ML-derived risk
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-panel min-h-[80vh] flex items-center py-16" data-step="4">
+          <div class="max-w-[520px]">
+            <div class="text-[11px] font-mono text-[#5A626E] mb-3">STEP 04 / 04</div>
+            <h3 class="text-[24px] sm:text-[32px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.2] mb-4">
+              Visual Report &amp; Explanation
+            </h3>
+            <p class="text-[15px] text-[#8B93A1] leading-[1.75] mb-6">
+              Get an explainable report — why the app is risky, what it can do, package name, and file hash.
+              Not just a "safe" or "malicious" tag.
+            </p>
+            <ul class="space-y-2 text-[13px] text-[#8B93A1]">
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Detailed capability breakdown
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Downloadable PDF export
+              </li>
+              <li class="flex items-start gap-2.5">
+                <svg class="mt-1 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5">
+                  <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Saved to your scan history
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     FEATURES GRID
+     ═══════════════════════════════════════════════ -->
+<section id="features" class="py-24 border-t border-[#1C2128]">
+  <div class="max-w-[1200px] mx-auto px-6">
+
+    <div class="max-w-[640px] mb-16 reveal">
+      <div class="text-[11px] uppercase tracking-[0.15em] text-[#5A626E] mb-4">
+        Features
+      </div>
+      <h2 class="text-[32px] sm:text-[40px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.15] mb-4">
+        Everything you need to trust an APK.
+      </h2>
+      <p class="text-[16px] text-[#8B93A1] leading-[1.7]">
+        Built for security engineers, not marketers.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#1C2128] border border-[#1C2128] rounded-lg overflow-hidden">
+
+      <div class="bg-[#0D1117] p-6 reveal">
+        <div class="w-9 h-9 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.6">
+            <path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-[14px] font-semibold text-[#E6E8EB] mb-1.5">Permission Analysis</h3>
+        <p class="text-[13px] text-[#8B93A1] leading-[1.7]">
+          Detect dangerous permission combos like SEND_SMS + READ_CONTACTS.
+        </p>
+      </div>
+
+      <div class="bg-[#0D1117] p-6 reveal">
+        <div class="w-9 h-9 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.6">
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+        <h3 class="text-[14px] font-semibold text-[#E6E8EB] mb-1.5">Signature Match</h3>
+        <p class="text-[13px] text-[#8B93A1] leading-[1.7]">
+          SHA-256 lookup and bytecode patterns against known families.
+        </p>
+      </div>
+
+      <div class="bg-[#0D1117] p-6 reveal">
+        <div class="w-9 h-9 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.6">
+            <polyline points="16 18 22 12 16 6" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="8 6 2 12 8 18" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="text-[14px] font-semibold text-[#E6E8EB] mb-1.5">Heuristic Detection</h3>
+        <p class="text-[13px] text-[#8B93A1] leading-[1.7]">
+          Rule-based scoring across permissions, APIs, and intents.
+        </p>
+      </div>
+
+      <div class="bg-[#0D1117] p-6 reveal">
+        <div class="w-9 h-9 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.6">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v6M12 17v6M4.2 4.2l4.3 4.3M15.5 15.5l4.3 4.3M1 12h6M17 12h6M4.2 19.8l4.3-4.3M15.5 8.5l4.3-4.3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="text-[14px] font-semibold text-[#E6E8EB] mb-1.5">Behavioral AI</h3>
+        <p class="text-[13px] text-[#8B93A1] leading-[1.7]">
+          XGBoost model trained on 11,598 samples across 5 categories.
+        </p>
+      </div>
+
+      <div class="bg-[#0D1117] p-6 reveal">
+        <div class="w-9 h-9 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.6">
+            <path d="M12 8v4l3 3"/>
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+        </div>
+        <h3 class="text-[14px] font-semibold text-[#E6E8EB] mb-1.5">Scan History</h3>
+        <p class="text-[13px] text-[#8B93A1] leading-[1.7]">
+          Every scan saved. Search, filter, and export to CSV.
+        </p>
+      </div>
+
+      <div class="bg-[#0D1117] p-6 reveal">
+        <div class="w-9 h-9 rounded-lg bg-[#11151C] border border-[#1C2128] flex items-center justify-center mb-4">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B93A1" stroke-width="1.6">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <path d="M14 2v6h6"/>
+          </svg>
+        </div>
+        <h3 class="text-[14px] font-semibold text-[#E6E8EB] mb-1.5">PDF Reports</h3>
+        <p class="text-[13px] text-[#8B93A1] leading-[1.7]">
+          Download a full analysis report for your records.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     FINAL CTA
+     ═══════════════════════════════════════════════ -->
+<section class="py-24 border-t border-[#1C2128]">
+  <div class="max-w-[1200px] mx-auto px-6">
+
+    <div class="max-w-[640px] reveal">
+      <h2 class="text-[32px] sm:text-[40px] font-bold text-[#E6E8EB] tracking-[-0.02em] leading-[1.15] mb-4">
+        Ready to scan?
+      </h2>
+      <p class="text-[16px] text-[#8B93A1] leading-[1.7] mb-8">
+        Free to use. No credit card. Sign up in 10 seconds.
+      </p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="{% url 'signup' %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#E6E8EB] hover:bg-white text-[#080A0D] text-[14px] font-medium rounded-lg transition">
+          Start Scanning
+        </a>
+        <a href="{% url 'login' %}"
+           class="inline-flex items-center gap-1.5 px-4 py-2.5 text-[14px] text-[#8B93A1] hover:text-[#E6E8EB] transition">
+          Sign in
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════ -->
+<footer class="border-t border-[#1C2128] py-8">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+
+      <div class="flex items-center gap-2.5">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z" stroke="#8B93A1" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M9 12l2 2 4-4" stroke="#10B981" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="text-[13px] font-medium text-[#8B93A1]">APKShield</span>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <a href="#" class="text-[12px] text-[#5A626E] hover:text-[#8B93A1] transition">Docs</a>
+        <a href="#" class="text-[12px] text-[#5A626E] hover:text-[#8B93A1] transition">Privacy</a>
+        <a href="#" class="text-[12px] text-[#5A626E] hover:text-[#8B93A1] transition">GitHub</a>
+      </div>
+
+      <div class="flex items-center gap-2 text-[11px] text-[#5A626E] font-mono">
+        <span class="w-1.5 h-1.5 rounded-full bg-[#10B981] live-dot"></span>
+        <span>v2.3.1</span>
+      </div>
+
+    </div>
+  </div>
+</footer>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+  // ═══════════════════════════════════════════════
+  // SMOOTH SCROLL
+  // ═══════════════════════════════════════════════
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href === '#' || href.length < 2) return;
+      const target = document.querySelector(href);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+  // ═══════════════════════════════════════════════
+  // REVEAL ON SCROLL (opacity 0 -> 1)
+  // ═══════════════════════════════════════════════
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // ═══════════════════════════════════════════════
+  // SCROLLYTELLING — change mockup scene on scroll
+  // ═══════════════════════════════════════════════
+  const stepPanels = document.querySelectorAll('.step-panel');
+  const scenes = document.querySelectorAll('.scene');
+  const stepDots = document.querySelectorAll('.step-dot');
+
+  const stepObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
+        const step = entry.target.getAttribute('data-step');
+
+        // 1. Update active state of step panels
+        stepPanels.forEach(p => p.classList.remove('active'));
+        entry.target.classList.add('active');
+
+        // 2. Switch mockup scene
+        scenes.forEach(scene => {
+          if (scene.getAttribute('data-scene') === step) {
+            scene.classList.add('active');
+          } else {
+            scene.classList.remove('active');
+          }
+        });
+
+        // 3. Update step indicator dots
+        stepDots.forEach(dot => {
+          const dotNum = dot.getAttribute('data-dot');
+          if (dotNum === step) {
+            dot.className = 'step-dot w-6 h-1 rounded-full bg-[#10B981] transition-all';
+          } else {
+            dot.className = 'step-dot w-1.5 h-1 rounded-full bg-[#2A313B] transition-all';
+          }
+        });
+
+        // 4. Animate the circular progress for step 3
+        if (step === '3') {
+          setTimeout(() => {
+            const circle = document.querySelector('.risk-circle');
+            if (circle) {
+              const circumference = 440;
+              const offset = circumference * (1 - 0.36); // 36%
+              circle.style.strokeDashoffset = offset;
+            }
+          }, 300);
+        }
+      }
+    });
+  }, {
+    threshold: [0.4, 0.6],
+    rootMargin: '-20% 0px -20% 0px'
+  });
+
+  stepPanels.forEach(panel => stepObserver.observe(panel));
+
+  // ═══════════════════════════════════════════════
+  // ANIMATE HERO RISK BAR ON LOAD
+  // ═══════════════════════════════════════════════
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.risk-bar-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => { bar.style.width = w; }, 100);
+      });
+    }, 400);
+  });
+</script>
+{% endblock %}

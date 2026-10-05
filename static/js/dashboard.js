@@ -306,3 +306,113 @@ document.addEventListener("DOMContentLoaded", () => {
   quarantineBtn.addEventListener("click", () => showToast("APK moved to quarantine", "success"));
   viewReportBtn.addEventListener("click", () => { window.location.href = "/report/"; });
 });
+
+/* ═══════════════════════════════════════════════
+   PLAY STORE URL SCANNING
+   ═══════════════════════════════════════════════ */
+(function() {
+    const tabFile = document.getElementById("tabFile");
+    const tabPlaystore = document.getElementById("tabPlaystore");
+    const dropZone = document.getElementById("dropZone");
+    const playstorePanel = document.getElementById("playstorePanel");
+    const selectedLine = document.getElementById("selectedLine");
+    const scanBtn = document.getElementById("scanBtn");
+
+    if (!tabFile || !tabPlaystore) return;
+
+    // Tab switching
+    tabFile.addEventListener("click", () => {
+        // Activate file tab
+        tabFile.classList.add("border-[#22c55e]", "bg-[#22c55e]/15", "text-[#22c55e]");
+        tabFile.classList.remove("border-[#1f1f23]", "text-[#a1a1aa]");
+
+        // Deactivate play store tab
+        tabPlaystore.classList.remove("border-[#22c55e]", "bg-[#22c55e]/15", "text-[#22c55e]");
+        tabPlaystore.classList.add("border-[#1f1f23]", "text-[#a1a1aa]");
+
+        // Show file UI
+        dropZone.classList.remove("hidden");
+        selectedLine.classList.add("hidden");
+        playstorePanel.classList.add("hidden");
+        scanBtn.classList.remove("hidden");
+    });
+
+    tabPlaystore.addEventListener("click", () => {
+        // Activate play store tab
+        tabPlaystore.classList.add("border-[#22c55e]", "bg-[#22c55e]/15", "text-[#22c55e]");
+        tabPlaystore.classList.remove("border-[#1f1f23]", "text-[#a1a1aa]");
+
+        // Deactivate file tab
+        tabFile.classList.remove("border-[#22c55e]", "bg-[#22c55e]/15", "text-[#22c55e]");
+        tabFile.classList.add("border-[#1f1f23]", "text-[#a1a1aa]");
+
+        // Show play store UI
+        dropZone.classList.add("hidden");
+        selectedLine.classList.add("hidden");
+        scanBtn.classList.add("hidden");
+        playstorePanel.classList.remove("hidden");
+    });
+
+    // Play Store scan button
+    const scanPlaystoreBtn = document.getElementById("scanPlaystoreBtn");
+    const playstoreUrlInput = document.getElementById("playstoreUrl");
+
+    if (scanPlaystoreBtn) {
+        scanPlaystoreBtn.addEventListener("click", async () => {
+            const url = playstoreUrlInput.value.trim();
+            if (!url) return showToast("Paste a Play Store URL first", "error");
+
+            if (!url.includes("play.google.com") && !url.includes("play.app.goo.gl")) {
+                return showToast("Not a valid Play Store URL", "error");
+            }
+
+            scanPlaystoreBtn.disabled = true;
+            scanPlaystoreBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i><span>Downloading & Analyzing...</span>`;
+
+            // Show skeleton on permissions card
+            const permEmpty = document.getElementById("permEmpty");
+            const permTableWrap = document.getElementById("permTableWrap");
+            const permSkeleton = document.getElementById("permSkeleton");
+            const permCount = document.getElementById("permCount");
+            const lastScanned = document.getElementById("lastScanned");
+
+            if (permEmpty) permEmpty.classList.add("hidden");
+            if (permTableWrap) permTableWrap.classList.add("hidden");
+            if (permSkeleton) permSkeleton.classList.remove("hidden");
+            if (permCount) permCount.textContent = "…";
+            if (lastScanned) lastScanned.textContent = "Downloading…";
+
+            try {
+                const res = await fetch("/api/scan-playstore/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken(),
+                    },
+                    body: JSON.stringify({ url: url }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.error || "Scan failed");
+                }
+
+                if (permSkeleton) permSkeleton.classList.add("hidden");
+                sessionStorage.setItem("apkshield_current_scan_id", data.id);
+                sessionStorage.setItem("apkshield_current_report", JSON.stringify(data));
+                renderReport(data);
+                showToast("Play Store scan complete", "success");
+
+            } catch (err) {
+                if (permSkeleton) permSkeleton.classList.add("hidden");
+                if (permEmpty) permEmpty.classList.remove("hidden");
+                if (lastScanned) lastScanned.textContent = "Last scanned: Never";
+                showToast(err.message, "error");
+            }
+
+            scanPlaystoreBtn.disabled = false;
+            scanPlaystoreBtn.innerHTML = `<i class="fa-solid fa-satellite-dish text-xs"></i><span>Scan from Play Store</span>`;
+        });
+    }
+})();

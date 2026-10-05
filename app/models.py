@@ -51,6 +51,7 @@ class APKScan(models.Model):
     family_match = models.IntegerField(default=0)
 
     detected_risks = models.JSONField(default=list, blank=True)
+    capabilities = models.JSONField(default=list, blank=True)
     ai_summary = models.TextField(blank=True, default="")
     recommendation = models.TextField(blank=True, default="")
     breakdown = models.JSONField(default=dict, blank=True)
