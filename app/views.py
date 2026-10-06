@@ -93,7 +93,9 @@ def report_view(request, scan_id=None):
 
 @login_required
 def threats_view(request):
-    return render(request, "app/threats.html")
+    from .models import MalwareFamily
+    families = MalwareFamily.objects.all()
+    return render(request, "app/threats.html", {"families": families})
 
 
 @login_required
