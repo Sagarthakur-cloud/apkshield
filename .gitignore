@@ -51,3 +51,4 @@ Thumbs.db
 
 # ─── User uploads (don't commit real APKs) ───
 media/apks/*.apk
+staticfiles/

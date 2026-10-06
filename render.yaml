@@ -1,0 +1,29 @@
+databases:
+  - name: apkshield-db
+    databaseName: apkshield
+    user: apkshield_user
+    plan: free
+
+services:
+  - type: web
+    name: apkshield
+    runtime: python
+    rootDir: backend/ApkInspect
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn ApkInspect.wsgi:application"
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: apkshield-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: ALLOWED_HOSTS
+        value: "*.onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
